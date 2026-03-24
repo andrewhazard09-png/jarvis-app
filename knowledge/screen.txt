@@ -1,0 +1,4 @@
+Topic: screen
+Last updated: 2026-03-23T01:39:12.744901
+
+A screen is a display device that shows visual information, usually on a television, computer monitor, or mobile device. It typically consists of a matrix of pixels, which are tiny light-emitting units that combine to form images. Screens can be made from various materials, including liquid crystals, LEDs, and OLEDs (Organic Light-Emitting Diodes). Modern screens often feature high-definition resolutions, wide color gamuts, and adjustable brightness and contrast settings to enhance visual quality.

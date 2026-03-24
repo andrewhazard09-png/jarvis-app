@@ -1,0 +1,6 @@
+Topic: screen info
+Last updated: 2026-03-23T02:29:19.102337
+
+Here is a summary of current knowledge about screen information:
+
+A screen is an electronic display device that shows visual and interactive information, commonly found in computers, smartphones, televisions, and other electronic devices. The resolution of a screen refers to its pixel density, with higher resolutions resulting in sharper and more detailed images. Common screen technologies include Liquid Crystal Display (LCD), Light Emitting Diode (LED), Organic Light Emitting Diode (OLED), and Plasma displays.

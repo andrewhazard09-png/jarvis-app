@@ -1,0 +1,4 @@
+Topic: context
+Last updated: 2026-03-23T00:09:02.873850
+
+Context in artificial intelligence (AI) refers to the information relevant to an ongoing interaction between the user and AI, including the conversation itself, the user's intentions, and the current state of the environment. Effective context management enables AI assistants to understand the nuances of language, provide more accurate responses, and adapt to the user's needs over time. This is achieved through various techniques such as natural language processing (NLP), machine learning, and knowledge graph-based models.

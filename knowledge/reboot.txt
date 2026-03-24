@@ -1,0 +1,4 @@
+Topic: reboot
+Last updated: 2026-03-22T22:58:54.569320
+
+A reboot is a process of restarting a computer system or device to clear and reload its memory and operating system. This is typically done to resolve issues such as freezing, crashes, or malfunctioning, as it resets the system to a known state. A reboot can be initiated manually by the user or automatically by the system. In modern times, some devices and operating systems may also offer soft reboots, which temporarily restart the system without completely shutting down.

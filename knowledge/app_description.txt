@@ -1,0 +1,4 @@
+Topic: app description
+Last updated: 2026-03-23T03:59:27.689065
+
+An app is a type of software that is designed to run on mobile devices, such as smartphones and tablets, or on computers and other electronic devices. Mobile apps can be categorized into two types - native and hybrid apps, with native apps developed specifically for a single platform (e.g., iOS or Android) and hybrid apps built using multi-platform frameworks. The majority of mobile apps are free to download, with in-app purchases and advertisements generating revenue for developers. As of 2023, there are approximately 8.1 million apps available across various app stores, and the global mobile app market is expected to continue growing.

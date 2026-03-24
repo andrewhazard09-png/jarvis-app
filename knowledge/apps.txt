@@ -1,0 +1,6 @@
+Topic: apps
+Last updated: 2026-03-23T08:06:56.886126
+
+Here is a summary of current knowledge about apps:
+
+Mobile apps are software applications designed to perform specific tasks or functions on mobile devices such as smartphones and tablets. As of 2023, the global app market is projected to reach 6.5 billion downloads, with a vast majority of apps available for both iOS and Android platforms. Most popular app categories include social media, music, gaming, and productivity tools. The development of augmented reality (AR) and artificial intelligence (AI) apps has also become increasingly prominent in recent years.

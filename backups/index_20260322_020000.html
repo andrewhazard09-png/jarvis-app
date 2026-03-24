@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>J.A.R.V.I.S.</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cyan: #00d4ff;
+  --cyan-dim: #0099bb;
+  --cyan-glow: rgba(0,212,255,0.12);
+  --blue: #0066ff;
+  --green: #00ff88;
+  --red: #ff3333;
+  --orange: #ff9900;
+  --bg: #010913;
+  --panel: rgba(0,20,40,0.85);
+  --border: rgba(0,212,255,0.2);
+  --border-bright: rgba(0,212,255,0.6);
+  --text: #c8eeff;
+  --text-dim: rgba(180,220,255,0.45);
+  --mono: 'Share Tech Mono', monospace;
+  --display: 'Rajdhani', sans-serif;
+  --body: 'Exo 2', sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  height: 100vh;
+  overflow: hidden;
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridScroll 20s linear infinite;
+  pointer-events:none;
+  z-index:0;
+}
+@keyframes gridScroll { to { background-position: 0 40px; } }
+.scanline {
+  position:fixed; top:-200px; left:0; width:100%; height:200px;
+  background:linear-gradient(transparent, rgba(0,212,255,0.015), transparent);
+  animation: scan 10s linear infinite;
+  pointer-events:none; z-index:1;
+}
+@keyframes scan { to { top: 100vh; } }
+.app {
+  display:grid;
+  grid-template-rows: 56px 1fr 72px;
+  grid-template-columns: 220px 1fr 200px;
+  height:100vh;
+  position:relative;
+  z-index:2;
+}
+/* HEADER */
+.header {
+  grid-column: 1/-1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 0 24px;
+  background: rgba(0,8,20,0.95);
+  border-bottom: 1px solid var(--border);
+  position:relative;
+}
+.header::after {
+  content:'';
+  position:absolute;
+  bottom:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, var(--cyan), var(--blue), var(--cyan), transparent);
+  animation: glow 4s ease-in-out infinite;
+}
+@keyframes glow { 0%,100%{opacity:0.3} 50%{opacity:1} }
+.logo {
+  font-family: var(--display);
+  font-size:20px; font-weight:700;
+  letter-spacing:10px;
+  color:var(--cyan);
+  text-shadow: 0 0 20px rgba(0,212,255,0.5);
+  display:flex; align-items:center; gap:10px;
+}
+.logo-pulse {
+  width:8px; height:8px;
+  background:var(--cyan);
+  border-radius:50%;
+  box-shadow:0 0 10px var(--cyan);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(1.4); opacity:0.7} }
+.header-mid {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text-dim);
+  letter-spacing:2px;
+  text-align:center;
+}
+.header-right {
+  display:flex; align-items:center; gap:20px;
+}
+.status-item {
+  display:flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:10px;
+  color:var(--text-dim); letter-spacing:1px;
+}
+.dot {
+  width:6px; height:6px;
+  border-radius:50%;
+  background:var(--text-dim);
+}
+.dot.online { background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 2s infinite; }
+.dot.offline { background:var(--red); }
+.clock {
+  font-family:var(--mono); font-size:12px;
+  color:var(--cyan-dim); letter-spacing:2px;
+}
+/* SIDEBAR LEFT */
+.sidebar-left {
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:14px;
+  display:flex; flex-direction:column; gap:6px;
+  backdrop-filter:blur(10px);
+  overflow-y:auto;
+}
+.section-label {
+  font-family:var(--mono); font-size:8px;
+  letter-spacing:3px; color:var(--text-dim);
+  padding:8px 0 6px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:2px;
+}
+.btn {
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:9px 12px;
+  font-family:var(--mono); font-size:10px;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:flex; align-items:center; gap:8px;
+  width:100%; text-align:left;
+  position:relative; overflow:hidden;
+}
+.btn::before {
+  content:'';
+  position:absolute; left:0; top:0; bottom:0; width:2px;
+  background:var(--cyan);
+  transform:scaleY(0);
+  transition:transform 0.2s;
+}
+.btn:hover {
+  border-color:var(--cyan-dim);
+  background:var(--cyan-glow);
+  color:var(--cyan);
+  box-shadow:0 0 12px var(--cyan-glow);
+}
+.btn:hover::before { transform:scaleY(1); }
+.btn.active {
+  border-color:var(--cyan);
+  background:var(--cyan-glow);
+  color:var(--cyan);
+}
+.btn.active::before { transform:scaleY(1); }
+select.model-select {
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--cyan-dim);
+  padding:8px 10px;
+  font-family:var(--mono); font-size:10px;
+  letter-spacing:1px;
+  cursor:pointer; width:100%;
+  appearance:none; -webkit-appearance:none;
+}
+select.model-select:focus { outline:none; border-color:var(--cyan); }
+select.model-select option { background:#010913; color:var(--text); }
+/* CHAT AREA */
+.chat-area {
+  display:flex; flex-direction:column;
+  background:rgba(0,6,18,0.7);
+  overflow:hidden;
+}
+.messages {
+  flex:1; overflow-y:auto;
+  padding:20px; display:flex;
+  flex-direction:column; gap:14px;
+  scroll-behavior:smooth;
+}
+.messages::-webkit-scrollbar { width:3px; }
+.messages::-webkit-scrollbar-thumb { background:var(--border); }
+.msg { display:flex; flex-direction:column; gap:4px; max-width:80%; animation:msgIn 0.25s ease-out; }
+@keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.msg.user { align-self:flex-end; align-items:flex-end; }
+.msg.assistant { align-self:flex-start; align-items:flex-start; }
+.msg.system { align-self:center; align-items:center; max-width:100%; }
+.msg-label { font-family:var(--mono); font-size:8px; letter-spacing:2px; color:var(--text-dim); }
+.msg-bubble {
+  padding:11px 15px;
+  font-family:var(--body); font-size:13px;
+  font-weight:300; line-height:1.65;
+  border:1px solid;
+  white-space:pre-wrap; word-wrap:break-word;
+}
+.msg.user .msg-bubble {
+  background:rgba(0,80,200,0.12);
+  border-color:rgba(0,100,255,0.35);
+  color:#c0ddff;
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);
+}
+.msg.assistant .msg-bubble {
+  background:rgba(0,212,255,0.04);
+  border-color:rgba(0,212,255,0.2);
+  clip-path:polygon(0 0,100% 0,100% 100%,8px 100%,0 calc(100% - 8px));
+}
+.msg.system .msg-bubble {
+  background:rgba(255,153,0,0.05);
+  border-color:rgba(255,153,0,0.2);
+  color:rgba(255,200,100,0.75);
+  font-family:var(--mono); font-size:10px;
+  letter-spacing:1px;
+}
+.typing {
+  display:none;
+  align-items:center; gap:10px;
+  padding:11px 15px;
+  background:rgba(0,212,255,0.04);
+  border:1px solid rgba(0,212,255,0.2);
+  align-self:flex-start;
+  clip-path:polygon(0 0,100% 0,100% 100%,8px 100%,0 calc(100% - 8px));
+  animation:msgIn 0.25s ease-out;
+}
+.typing.active { display:flex; }
+.typing-label { font-family:var(--mono); font-size:9px; color:var(--cyan-dim); letter-spacing:2px; }
+.dots { display:flex; gap:4px; }
+.dots span {
+  width:4px; height:4px;
+  background:var(--cyan);
+  border-radius:50%;
+  animation:dotPulse 1.2s ease-in-out infinite;
+}
+.dots span:nth-child(2) { animation-delay:0.2s; }
+.dots span:nth-child(3) { animation-delay:0.4s; }
+@keyframes dotPulse { 0%,80%,100%{transform:scale(0.6);opacity:0.3} 40%{transform:scale(1);opacity:1} }
+/* INPUT BAR */
+.input-bar {
+  grid-column:1/-1;
+  display:flex; align-items:center; gap:12px;
+  padding:0 20px;
+  background:rgba(0,8,20,0.95);
+  border-top:1px solid var(--border);
+  position:relative;
+}
+.input-bar::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity:0.4;
+}
+.input-prefix {
+  font-family:var(--mono); font-size:14px;
+  color:var(--cyan); flex-shrink:0;
+}
+.input-field {
+  flex:1;
+  background:transparent;
+  border:none;
+  color:var(--text);
+  font-family:var(--mono); font-size:13px;
+  letter-spacing:0.5px;
+  outline:none;
+  caret-color:var(--cyan);
+}
+.input-field::placeholder { color:var(--text-dim); }
+.send-btn {
+  background:transparent;
+  border:1px solid var(--cyan-dim);
+  color:var(--cyan);
+  padding:8px 18px;
+  font-family:var(--mono); font-size:11px;
+  letter-spacing:2px;
+  cursor:pointer;
+  transition:all 0.2s;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
+}
+.send-btn:hover {
+  background:var(--cyan-glow);
+  border-color:var(--cyan);
+  box-shadow:0 0 15px var(--cyan-glow);
+}
+/* RIGHT PANEL */
+.sidebar-right {
+  background:var(--panel);
+  border-left:1px solid var(--border);
+  padding:14px;
+  display:flex; flex-direction:column; gap:8px;
+  backdrop-filter:blur(10px);
+  overflow-y:auto;
+}
+.stat-block {
+  border:1px solid var(--border);
+  padding:10px 12px;
+  display:flex; flex-direction:column; gap:4px;
+}
+.stat-label { font-family:var(--mono); font-size:8px; letter-spacing:2px; color:var(--text-dim); }
+.stat-value { font-family:var(--mono); font-size:18px; color:var(--cyan); font-weight:bold; }
+.stat-sub { font-family:var(--mono); font-size:9px; color:var(--text-dim); }
+.progress-bar {
+  height:2px; background:rgba(0,212,255,0.1);
+  margin-top:4px; position:relative; overflow:hidden;
+}
+.progress-fill {
+  height:100%; background:var(--cyan);
+  box-shadow:0 0 6px var(--cyan);
+  transition:width 0.5s;
+}
+.conversation-count {
+  font-family:var(--mono); font-size:24px;
+  color:var(--cyan); text-align:center;
+  text-shadow:0 0 20px rgba(0,212,255,0.4);
+}
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="app">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-pulse"></div>
+      J.A.R.V.I.S.
+    </div>
+    <div class="header-mid">
+      JUST A RATHER VERY INTELLIGENT SYSTEM<br>
+      <span style="font-size:8px;letter-spacing:4px;opacity:0.5">STARK INDUSTRIES — PERSONAL AI INTERFACE</span>
+    </div>
+    <div class="header-right">
+      <div class="status-item"><div class="dot checking" id="dot-ollama"></div><span id="lbl-ollama">OLLAMA</span></div>
+      <div class="status-item"><div class="dot checking" id="dot-n8n"></div><span id="lbl-n8n">N8N</span></div>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <aside class="sidebar-left">
+    <div class="section-label">// MODEL</div>
+    <select class="model-select" id="model-select">
+      <option value="llama3.1:8b">LLAMA 3.1 — 8B</option>
+      <option value="mistral">MISTRAL — 7B</option>
+      <option value="phi3">PHI3 — 3.8B</option>
+      <option value="llama3.2">LLAMA 3.2 — 3B</option>
+      <option value="codellama">CODELLAMA</option>
+    </select>
+
+    <div class="section-label">// QUICK ACTIONS</div>
+    <button class="btn" onclick="quickSend('Summarize what you can help me with today.')">
+      <span>⚡</span> BRIEFING
+    </button>
+    <button class="btn" onclick="quickSend('Search the web for the latest AI news today and summarize the top 3 stories.')">
+      <span>🔍</span> WEB SEARCH
+    </button>
+    <button class="btn" onclick="quickSend('List all files on my Desktop.')">
+      <span>📁</span> FILES
+    </button>
+    <button class="btn" onclick="quickSend('Write a Python script that checks my system CPU and memory usage and prints a report.')">
+      <span>💻</span> SYSTEM CHECK
+    </button>
+    <button class="btn" onclick="quickSend('What automations can I build with n8n that would save me time daily?')">
+      <span>⚙️</span> WORKFLOWS
+    </button>
+    <button class="btn" onclick="quickSend('Write me a Python script I can run to organize files in my Downloads folder by type.')">
+      <span>🗂️</span> ORGANIZE FILES
+    </button>
+
+    <div class="section-label">// SYSTEM</div>
+    <button class="btn" onclick="clearChat()">
+      <span>🗑</span> CLEAR CHAT
+    </button>
+    <button class="btn" onclick="checkStatus()">
+      <span>📡</span> PING SYSTEMS
+    </button>
+  </aside>
+
+  <main class="chat-area">
+    <div class="messages" id="messages">
+      <div class="msg system">
+        <div class="msg-bubble">◈ J.A.R.V.I.S. ONLINE — ALL SYSTEMS NOMINAL ◈</div>
+      </div>
+      <div class="msg assistant">
+        <div class="msg-label">// JARVIS</div>
+        <div class="msg-bubble">Good to see you. I'm online and connected to your local model. All systems are standing by. What would you like to work on?</div>
+      </div>
+    </div>
+    <div class="typing" id="typing">
+      <div class="typing-label">PROCESSING</div>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+  </main>
+
+  <aside class="sidebar-right">
+    <div class="section-label">// SESSION</div>
+    <div class="stat-block">
+      <div class="stat-label">MESSAGES</div>
+      <div class="stat-value conversation-count" id="msg-count">0</div>
+      <div class="stat-sub">THIS SESSION</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">ACTIVE MODEL</div>
+      <div class="stat-value" style="font-size:12px" id="active-model">LLAMA 3.1</div>
+      <div class="stat-sub">LOCAL — PRIVATE</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">RESPONSE TIME</div>
+      <div class="stat-value" id="resp-time">—</div>
+      <div class="stat-sub">LAST REQUEST (S)</div>
+    </div>
+
+    <div class="section-label">// LINKS</div>
+    <button class="btn" onclick="window.open('http://localhost:3000')"><span>🌐</span> OPEN WEBUI</button>
+    <button class="btn" onclick="window.open('http://localhost:5678')"><span>⚙️</span> N8N DASHBOARD</button>
+  </aside>
+
+  <div class="input-bar">
+    <span class="input-prefix">&gt;_</span>
+    <input class="input-field" id="input" type="text" placeholder="Enter directive..." autocomplete="off" />
+    <button class="send-btn" onclick="sendMessage()">SEND</button>
+  </div>
+</div>
+
+<script>
+let msgCount = 0;
+
+function clock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-US', {hour12:false});
+}
+setInterval(clock, 1000);
+clock();
+
+async function checkStatus() {
+  try {
+    const res = await fetch('/status');
+    const data = await res.json();
+    const ollama = document.getElementById('dot-ollama');
+    const n8n = document.getElementById('dot-n8n');
+    ollama.className = 'dot ' + (data.ollama === 'online' ? 'online' : 'offline');
+    n8n.className = 'dot ' + (data.n8n === 'online' ? 'online' : 'offline');
+  } catch(e) {}
+}
+checkStatus();
+setInterval(checkStatus, 10000);
+
+document.getElementById('model-select').addEventListener('change', function() {
+  const name = this.options[this.selectedIndex].text.split(' — ')[0];
+  document.getElementById('active-model').textContent = name;
+});
+
+document.getElementById('input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+function addMessage(role, text) {
+  const messages = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  const label = role === 'user' ? '// YOU' : role === 'assistant' ? '// JARVIS' : '';
+  div.innerHTML = (label ? `<div class="msg-label">${label}</div>` : '') +
+    `<div class="msg-bubble">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+  if (role !== 'system') {
+    msgCount++;
+    document.getElementById('msg-count').textContent = msgCount;
+  }
+}
+
+function quickSend(text) {
+  document.getElementById('input').value = text;
+  sendMessage();
+}
+
+async function executeTask(task) {
+  const confirmed = confirm('JARVIS wants to execute:\n\n' + task + '\n\nAllow?');
+  if (!confirmed) {
+    addMessage('system', '⚠ TASK CANCELLED BY USER');
+    return;
+  }
+  addMessage('system', '⚙ EXECUTING: ' + task);
+  try {
+    const res = await fetch('/agent', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ task, approved: true })
+    });
+    const data = await res.json();
+    if (data.output) addMessage('assistant', data.output);
+    if (data.error) addMessage('system', '⚠ ' + data.error);
+  } catch(e) {
+    addMessage('system', '⚠ AGENT ERROR: ' + e.message);
+  }
+}
+
+async function executeTask(task) {
+  const confirmed = confirm('JARVIS wants to execute:\n\n' + task + '\n\nAllow?');
+  if (!confirmed) {
+    addMessage('system', '⚠ TASK CANCELLED BY USER');
+    return;
+  }
+  addMessage('system', '⚙ EXECUTING: ' + task);
+  try {
+    const res = await fetch('/agent', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ task, approved: true })
+    });
+    const data = await res.json();
+    if (data.output) addMessage('assistant', data.output);
+    if (data.error) addMessage('system', '⚠ ' + data.error);
+  } catch(e) {
+    addMessage('system', '⚠ AGENT ERROR: ' + e.message);
+  }
+}
+
+function clearChat() {
+  const messages = document.getElementById('messages');
+  messages.innerHTML = '<div class="msg system"><div class="msg-bubble">◈ SESSION CLEARED ◈</div></div>';
+  msgCount = 0;
+  document.getElementById('msg-count').textContent = '0';
+}
+
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addMessage('user', text);
+
+  const typing = document.getElementById('typing');
+  const messages = document.getElementById('messages');
+  messages.appendChild(typing);
+  typing.classList.add('active');
+  messages.scrollTop = messages.scrollHeight;
+
+  const start = Date.now();
+  const model = document.getElementById('model-select').value;
+
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ message: text, model })
+    });
+    typing.classList.remove('active');
+    const div = document.createElement('div');
+    div.className = 'msg assistant';
+    div.innerHTML = '<div class="msg-label">// JARVIS</div><div class="msg-bubble" id="streaming-bubble"></div>';
+    messages.appendChild(div);
+    const bubble = document.getElementById('streaming-bubble');
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      full += decoder.decode(value);
+      bubble.textContent = full;
+      messages.scrollTop = messages.scrollHeight;
+    }
+    bubble.removeAttribute('id');
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    document.getElementById('resp-time').textContent = elapsed;
+    msgCount++;
+    document.getElementById('msg-count').textContent = msgCount;
+
+    // If agent mode, show approve button
+    if (full.includes('[JARVIS AGENT MODE]')) {
+      const approveBtn = document.createElement('button');
+      approveBtn.className = 'btn';
+      approveBtn.style.cssText = 'border-color:#00ff88;color:#00ff88;margin-top:8px;align-self:flex-start;';
+      approveBtn.innerHTML = '✓ APPROVE — EXECUTE ON MY MACHINE';
+      approveBtn.onclick = async () => {
+        approveBtn.disabled = true;
+        approveBtn.innerHTML = '⚙ RUNNING...';
+        addMessage('system', '⚙ JARVIS IS EXECUTING...');
+        const res = await fetch('/agent', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ task: text, approved: true })
+        });
+        const data = await res.json();
+        if (data.output) addMessage('assistant', data.output);
+        if (data.error && data.error.trim()) addMessage('system', '⚠ ' + data.error);
+        approveBtn.remove();
+      };
+      const lastMsg = document.querySelector('.msg.assistant:last-child');
+      if (lastMsg) lastMsg.appendChild(approveBtn);
+    }
+
+    // Self-modification detection
+    if (full.includes('FILE:') && full.includes('CODE:') && full.includes('END')) {
+      const fileMatch = full.match(/FILE: (.+)/);
+      const codeMatch = full.match(/CODE:\n([\s\S]*?)END/);
+      if (fileMatch && codeMatch) {
+        const filename = fileMatch[1].trim();
+        const code = codeMatch[1].trim();
+        addMessage('system', '◈ JARVIS REWRITING ' + filename.toUpperCase() + ' ◈');
+        const writeRes = await fetch('/write-file', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ filename, content: code })
+        });
+        const writeData = await writeRes.json();
+        if (writeData.status === 'saved') {
+          addMessage('system', '✓ ' + filename + ' UPDATED — RELOADING...');
+          setTimeout(() => location.reload(), 2000);
+        } else if (writeData.status === 'restarting') {
+          addMessage('system', '✓ app.py UPDATED — RESTARTING...');
+          setTimeout(() => location.reload(), 3000);
+        } else {
+          addMessage('system', '⚠ WRITE ERROR: ' + JSON.stringify(writeData));
+        }
+      }
+    }
+  } catch(e) {
+    typing.classList.remove('active');
+    addMessage('system', '⚠ CONNECTION ERROR — CHECK OLLAMA STATUS');
+  }
+}
+</script>
+</body>
+</html>

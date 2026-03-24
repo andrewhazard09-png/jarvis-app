@@ -1,0 +1,4 @@
+Topic: terminal
+Last updated: 2026-03-22T22:18:48.013289
+
+A terminal is a user interface program used to access and interact with computer operating systems. It allows users to input commands and execute functions through a command-line interface. There are different types of terminals, including local terminals, which are directly connected to a physical computer, and remote terminals, such as SSH terminals, which connect to a remote computer over a network. Popular terminal emulators include Windows Terminal for Windows and iTerm2 for macOS.

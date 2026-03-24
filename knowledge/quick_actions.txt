@@ -1,0 +1,12 @@
+Topic: quick actions
+Last updated: 2026-03-23T03:59:28.156582
+
+Based on the available information, I'll provide a summary. However, there may be a problem with my response due to the lack of information available on the term "quick actions." 
+
+In Microsoft Windows and other operating systems, a "Quick Action" generally refers to a context menu button or action displayed in the Notification Center, Action Center, or system tray, allowing users to perform common tasks efficiently.
+
+Examples of quick actions include locking the screen, switching to night mode, or connecting to a Wi-Fi network. 
+
+These actions are designed to streamline user experience and provide a quicker way to access frequently used features without navigating through various menus or settings.
+
+This summary is based on my understanding of context menus and operating system functionality.

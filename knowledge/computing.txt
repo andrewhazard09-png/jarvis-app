@@ -1,0 +1,8 @@
+Topic: computing
+Last updated: 2026-03-22T21:58:45.292050
+
+Here's a factual summary of current knowledge about computing:
+
+Computing involves the study and use of computers, which are electronic devices that can process, store, and communicate information. The evolution of computing has led to the development of various disciplines, including computer science, software engineering, and information technology. Current computing trends include the use of artificial intelligence, machine learning, and the Internet of Things (IoT) to create smart systems and improve efficiency. Cloud computing and edge computing have also become increasingly popular, offering flexible and on-demand access to computing resources.
+
+(Note: I've kept the summary up to date to March 2023)

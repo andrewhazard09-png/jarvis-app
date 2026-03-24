@@ -1,0 +1,6 @@
+Topic: AppInfo
+Last updated: 2026-03-23T00:29:05.128961
+
+There is limited information available on "AppInfo" as it's a generic term and could refer to various applications or APIs. However, I can provide a general summary of application information and the AppInfo interface in Android. In the Android operating system, 'AppInfo' or 'Application Information' refers to settings or APIs used to display information about installed Android applications, such as the app's package name, developer, and permissions. This can be accessed by users through the Android Settings app. 
+
+If you're looking for a different context for "AppInfo", please provide more details so I can provide a more accurate summary.

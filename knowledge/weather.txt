@@ -1,0 +1,6 @@
+Topic: weather
+Last updated: 2026-03-22T21:18:40.935070
+
+Here's a summary of current knowledge about weather:
+
+Weather refers to short-term atmospheric conditions in a specific area, encompassing phenomena such as temperature, humidity, cloudiness, wind, and precipitation. Global weather patterns are influenced by the movement of high and low-pressure systems and front interactions, driven by solar radiation and topography. Weather is also regulated by large-scale circulation patterns, including trade winds, jet streams, and Hadley cells, which shape global climate regions and influence regional weather variability. Climate models and satellite imagery enable improved forecasting and monitoring of weather systems, helping to predict and mitigate the effects of extreme weather events.
