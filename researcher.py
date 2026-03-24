@@ -39,9 +39,10 @@ def search_web(query):
         return [str(e)]
 
 def ask_ollama(prompt):
+    from config import GROQ_KEY
     res = requests.post('https://api.groq.com/openai/v1/chat/completions',
         headers={
-            'Authorization': 'Bearer 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',
+            'Authorization': f'Bearer {GROQ_KEY}',
             'Content-Type': 'application/json'
         },
         json={

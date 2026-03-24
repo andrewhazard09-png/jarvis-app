@@ -1,4 +1,9 @@
-GROQ_KEY = "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"
-OPENROUTER_KEY = "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"
-WEATHER_KEY = "5c27c79d75185fca57e7f43a2336faaa"
-NEWS_KEY = "6aed05c7f5654f20a49c14098d969849"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GROQ_KEY = os.getenv("GROQ_API_KEY", "")
+OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY", "")
+WEATHER_KEY = os.getenv("WEATHER_API_KEY", "")
+NEWS_KEY = os.getenv("NEWS_API_KEY", "")

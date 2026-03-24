@@ -133,7 +133,7 @@ def chat():
         try:
             groq_res = requests.post('https://api.groq.com/openai/v1/chat/completions',
                 headers={
-                    'Authorization': 'Bearer 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',
+                    'Authorization': 'Bearer ' + os.getenv('GROQ_API_KEY', ''),
                     'Content-Type': 'application/json'
                 },
                 json={

@@ -1,0 +1,23 @@
+# Environment variables / secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Screenshots
+screen_capture.png
+
+# Temp files
+app_pending.py
+app_temp.py
+*.tmp
