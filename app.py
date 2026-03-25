@@ -8,21 +8,11 @@ import os
 import subprocess
 import datetime
 
+from mac_bridge import handle_mac_command  # <-- All Mac commands handled here
+
 app = Flask(__name__)
 
-# Start live screen capture
-try:
-    import screen_reader
-    screen_reader.start_live_capture()
-except:
-    pass
-
-# Start self improvement system
-try:
-    import self_improve
-    self_improve.start()
-except:
-    pass
+# -------------------- Utilities --------------------
 
 def web_search(query):
     try:
@@ -43,7 +33,10 @@ def web_search(query):
 
 def get_weather(city="Nyack"):
     try:
-        res = requests.get(f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_KEY}&units=imperial', timeout=10)
+        res = requests.get(
+            f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_KEY}&units=imperial',
+            timeout=10
+        )
         data = res.json()
         temp = data['main']['temp']
         feels = data['main']['feels_like']
@@ -55,7 +48,10 @@ def get_weather(city="Nyack"):
 
 def get_news(topic="world"):
     try:
-        res = requests.get(f'https://newsapi.org/v2/everything?q={topic}&sortBy=publishedAt&pageSize=3&apiKey={NEWS_KEY}', timeout=10)
+        res = requests.get(
+            f'https://newsapi.org/v2/everything?q={topic}&sortBy=publishedAt&pageSize=3&apiKey={NEWS_KEY}',
+            timeout=10
+        )
         articles = res.json().get('articles', [])
         if not articles:
             return "No news found."
@@ -84,9 +80,10 @@ Facts about yourself:
 - You remember this conversation and learn over time
 - When Drew asks what you can do, list your actual capabilities
 - For casual conversation respond naturally, never search the web for personal statements
-- If Drew says something personal like "I went to a parade", respond conversationally
 - Only modify your code if Drew explicitly says "modify yourself"
 - You are always talking directly to Drew"""
+
+# -------------------- Flask Routes --------------------
 
 @app.route('/')
 def index():
@@ -140,228 +137,55 @@ def write_file():
     except Exception as e:
         return jsonify({'error': str(e)})
 
+# -------------------- Chat Endpoint --------------------
+
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
     message = data.get('message', '')
-    history = data.get('history', [])
-
-    msg_lower = message.lower()
-
-    # Load RAG knowledge
-    try:
-        import rag
-        knowledge_context = rag.get_context()
-    except:
-        knowledge_context = ""
-
-    # Load memory context
-    try:
-        import memory as mem
-        memory_context = mem.get_context() + knowledge_context
-        with open(os.path.expanduser('~/jarvis-app/memory.json'), 'r+') as mf:
-            mdata = json.load(mf)
-            mdata['last_seen'] = datetime.datetime.now().isoformat()
-            mf.seek(0)
-            json.dump(mdata, mf, indent=2)
-    except:
-        memory_context = knowledge_context
-
-    # Log conversation
-    with open(os.path.expanduser('~/jarvis-app/conversations.log'), 'a') as f:
-        f.write(f"[{datetime.datetime.now().isoformat()}] USER: {message}\n")
-
-    # Good morning summary
-    if 'good morning' in msg_lower:
-        result = morning_summary()
+    mac_result = handle_mac_command(message)
+    if mac_result is not None:
+        print("\n--- REQUEST ---")
+        print("USER:", message)
+        print("MAC:", mac_result)
         def generate():
-            yield result
+            yield mac_result
         return Response(stream_with_context(generate()), content_type='text/plain')
+    msg = message.lower()
 
-    # Self coding
-    if any(t in msg_lower for t in ['add a feature', 'add feature', 'modify yourself', 'update yourself', 'change yourself']):
-        try:
-            import self_coder
-            result = self_coder.propose_change(message)
-            def generate():
-                yield result['message']
-            return Response(stream_with_context(generate()), content_type='text/plain')
-        except Exception as e:
-            pass
+    print("\n--- REQUEST ---")
+    print("USER:", message)
 
-    if any(t in msg_lower for t in ['apply the change', 'apply change', 'confirm the change', 'yes apply']):
-        try:
-            import self_coder
-            result = self_coder.apply_change()
-            def generate():
-                yield result['message']
-            return Response(stream_with_context(generate()), content_type='text/plain')
-        except Exception as e:
-            pass
-
-    if any(t in msg_lower for t in ['cancel the change', 'cancel change', 'discard the change']):
-        try:
-            import self_coder
-            result = self_coder.cancel_change()
-            def generate():
-                yield result['message']
-            return Response(stream_with_context(generate()), content_type='text/plain')
-        except Exception as e:
-            pass
-
-    # Screen reading
-    screen_triggers = ['look at my screen', 'what do you see', 'whats on my screen', 'read my screen', 'what am i looking at']
-    if any(t in msg_lower for t in screen_triggers):
-        try:
-            import screen_reader
-            result = screen_reader.read_screen(message)
-            def generate():
-                yield result
-            return Response(stream_with_context(generate()), content_type='text/plain')
-        except:
-            pass
-
-    # Weather
-    if any(w in msg_lower for w in ['weather', 'temperature', 'forecast']):
+    # WEATHER CHECK
+    if "weather" in msg:
         result = get_weather("Nyack")
-        def generate():
-            yield result
-        return Response(stream_with_context(generate()), content_type='text/plain')
+        print("WEATHER:", result)
+        return result
 
-    # News
-    if any(w in msg_lower for w in ['whats the news', 'what is the news', 'latest news', 'top headlines']):
-        skip = {'news','headlines','latest','what','is','the','about','whats','happening','on','in','a','an','tell','me','give','get','recent','today','big','top','any','that','are','important','some','current','new'}
-        words = [w for w in msg_lower.split() if w not in skip]
-        topic = ' '.join(words) if words else 'world'
-        result = get_news(topic)
-        def generate():
-            yield result
-        return Response(stream_with_context(generate()), content_type='text/plain')
-
-    # Mac bridge for app control
+    # AI FALLBACK
     try:
-        import mac_bridge
-        mac_result = mac_bridge.handle_mac_command(message)
-        if mac_result:
-            def generate():
-                yield mac_result
-            return Response(stream_with_context(generate()), content_type='text/plain')
-    except:
-        pass
+        res = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama-3.3-70b-versatile",
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": message}
+                ]
+            }
+        )
+        reply = res.json()["choices"][0]["message"]["content"]
+        print("AI:", reply)
+        return reply
+    except Exception as e:
+        print("AI ERROR:", e)
+        return "Error talking to AI."
 
-    # Sports scores - direct requests only
-    direct_score_triggers = ['what are the scores', 'todays scores', 'last nights scores', 'nba scores', 'nfl scores', 'mlb scores', 'nhl scores']
-    if any(t in msg_lower for t in direct_score_triggers):
-        try:
-            import sports
-            sport = sports.detect_sport(message)
-            result = sports.get_scores(sport)
-            def generate():
-                yield result
-            return Response(stream_with_context(generate()), content_type='text/plain')
-        except Exception as e:
-            pass
-
-    # Smart search detection
-    def needs_current_info(msg):
-        try:
-            res = requests.post('https://api.groq.com/openai/v1/chat/completions',
-                headers={'Authorization': 'Bearer ' + GROQ_KEY, 'Content-Type': 'application/json'},
-                json={
-                    'model': 'llama-3.1-8b-instant',
-                    'messages': [{'role': 'user', 'content': f'Does answering this require current real-time information that could have changed in the last week? Answer ONLY yes or no. Question: {msg}'}],
-                    'max_tokens': 5
-                },
-                timeout=10
-            )
-            answer = res.json()['choices'][0]['message']['content'].strip().lower()
-            return 'yes' in answer
-        except:
-            return False
-
-    if needs_current_info(message):
-        search_results = web_search(message)
-        def generate():
-            prompt = 'Based on these real search results, answer concisely: ' + message + '\nResults: ' + search_results + '\nNever make up data not in the results.'
-            groq_res = requests.post('https://api.groq.com/openai/v1/chat/completions',
-                headers={'Authorization': 'Bearer ' + GROQ_KEY, 'Content-Type': 'application/json'},
-                json={
-                    'model': 'llama-3.3-70b-versatile',
-                    'messages': [{'role': 'system', 'content': SYSTEM_PROMPT}] + history[-6:] + [{'role': 'user', 'content': prompt}],
-                    'stream': True,
-                    'max_tokens': 512
-                },
-                stream=True, timeout=30)
-            for line in groq_res.iter_lines():
-                if line:
-                    line = line.decode('utf-8')
-                    if line.startswith('data: ') and line != 'data: [DONE]':
-                        chunk = json.loads(line[6:])
-                        delta = chunk['choices'][0]['delta'].get('content', '')
-                        if delta:
-                            yield delta
-        return Response(stream_with_context(generate()), content_type='text/plain')
-
-    # Agent mode
-    agent_triggers = ['list my files', 'show my files', 'open the app', 'delete this file', 'organize my desktop']
-    if any(t in msg_lower for t in agent_triggers):
-        def generate():
-            yield "[JARVIS AGENT MODE]\n\nI want to run this on your computer:\n\n" + message + "\n\nClick APPROVE in the UI to execute."
-        return Response(stream_with_context(generate()), content_type='text/plain')
-
-    # Main chat via Groq with OpenRouter fallback
-    def generate():
-        try:
-            groq_res = requests.post('https://api.groq.com/openai/v1/chat/completions',
-                headers={'Authorization': 'Bearer ' + GROQ_KEY, 'Content-Type': 'application/json'},
-                json={
-                    'model': 'llama-3.3-70b-versatile',
-                    'messages': [
-                        {'role': 'system', 'content': SYSTEM_PROMPT + memory_context}
-                    ] + history[-6:] + [
-                        {'role': 'user', 'content': message}
-                    ],
-                    'stream': True,
-                    'max_tokens': 1024
-                },
-                stream=True, timeout=30
-            )
-            for line in groq_res.iter_lines():
-                if line:
-                    line = line.decode('utf-8')
-                    if line.startswith('data: ') and line != 'data: [DONE]':
-                        chunk = json.loads(line[6:])
-                        delta = chunk['choices'][0]['delta'].get('content', '')
-                        if delta:
-                            yield delta
-        except Exception as e:
-            try:
-                or_res = requests.post('https://openrouter.ai/api/v1/chat/completions',
-                    headers={'Authorization': 'Bearer ' + OPENROUTER_KEY, 'Content-Type': 'application/json'},
-                    json={
-                        'model': 'meta-llama/llama-3.3-70b-instruct',
-                        'messages': [
-                            {'role': 'system', 'content': SYSTEM_PROMPT + memory_context}
-                        ] + history[-6:] + [
-                            {'role': 'user', 'content': message}
-                        ],
-                        'stream': True,
-                        'max_tokens': 1024
-                    },
-                    stream=True, timeout=30
-                )
-                for line in or_res.iter_lines():
-                    if line:
-                        line = line.decode('utf-8')
-                        if line.startswith('data: ') and line != 'data: [DONE]':
-                            chunk = json.loads(line[6:])
-                            delta = chunk['choices'][0]['delta'].get('content', '')
-                            if delta:
-                                yield delta
-            except Exception as e2:
-                yield f"⚠ All AI services unavailable: {str(e2)}"
-
-    return Response(stream_with_context(generate()), content_type='text/plain')
+# -------------------- Feedback / History --------------------
 
 @app.route('/feedback', methods=['POST'])
 def feedback():
@@ -408,6 +232,8 @@ def status():
         results['n8n'] = 'offline'
     return jsonify(results)
 
+# -------------------- Agent Tasks --------------------
+
 @app.route('/agent', methods=['POST'])
 def agent():
     data = request.json
@@ -437,5 +263,7 @@ def agent():
         return jsonify({'status': 'error', 'output': '', 'error': str(e)})
     return jsonify({'status': 'done', 'output': '\n'.join(output), 'error': ''})
 
+# -------------------- Main --------------------
+
 if __name__ == '__main__':
-    app.run(port=8080, debug=False)
+    app.run(port=8080, debug=True)

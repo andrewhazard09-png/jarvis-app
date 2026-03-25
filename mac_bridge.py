@@ -12,61 +12,65 @@ def run_applescript(script):
         return f'Error: {str(e)}'
 
 def handle_mac_command(message):
-    msg = message.lower()
+    msg = message.lower().strip()
 
-    # Music
-    if 'play' in msg and ('music' in msg or 'spotify' in msg or 'song' in msg):
-        return run_applescript('tell application "Spotify" to play')
-    if 'pause' in msg and ('music' in msg or 'spotify' in msg):
-        return run_applescript('tell application "Spotify" to pause')
-    if 'next' in msg and ('song' in msg or 'track' in msg):
-        return run_applescript('tell application "Spotify" to next track')
-
-    # Volume
     if 'volume up' in msg:
-        return run_applescript('set volume output volume (output volume of (get volume settings) + 10)')
+        return run_applescript(
+            'set v to (output volume of (get volume settings)) + 10\n'
+            'if v > 100 then set v to 100\n'
+            'set volume output volume v'
+        )
     if 'volume down' in msg:
-        return run_applescript('set volume output volume (output volume of (get volume settings) - 10)')
-    if 'mute' in msg:
-        return run_applescript('set volume output muted true')
+        return run_applescript(
+            'set v to (output volume of (get volume settings)) - 10\n'
+            'if v < 0 then set v to 0\n'
+            'set volume output volume v'
+        )
+    if 'max volume' in msg:
+        return run_applescript('set volume output volume 100')
     if 'unmute' in msg:
         return run_applescript('set volume output muted false')
+    if 'mute' in msg:
+        return run_applescript('set volume output muted true')
 
-    # Calendar
-    if 'calendar' in msg or 'next event' in msg or 'schedule' in msg:
-        return run_applescript('''
-            tell application "Calendar"
-                set allEvents to every event of every calendar
-                return "Calendar access granted"
-            end tell''')
-
-    # Screenshots
-    if 'screenshot' in msg:
-        path = os.path.expanduser('~/Desktop/jarvis_screenshot.png')
-        subprocess.run(['screencapture', '-x', path])
-        return f'Screenshot saved to Desktop as jarvis_screenshot.png'
-
-    # Battery
     if 'battery' in msg:
-        result = subprocess.run(['pmset', '-g', 'batt'], capture_output=True, text=True)
-        return result.stdout.strip()
+        try:
+            result = subprocess.run(['pmset', '-g', 'batt'], capture_output=True, text=True)
+            lines = result.stdout.strip().split('\n')
+            return lines[1].strip() if len(lines) > 1 else 'Battery info unavailable'
+        except Exception as e:
+            return f'Battery error: {str(e)}'
 
-    # System stats
-    if 'cpu' in msg or 'memory' in msg or 'ram' in msg:
-        result = subprocess.run(['top', '-l', '1', '-n', '0'], capture_output=True, text=True)
-        lines = result.stdout.split('\n')[:8]
-        return '\n'.join(lines)
+    if 'screenshot' in msg:
+        try:
+            path = os.path.expanduser('~/Desktop/jarvis_screenshot.png')
+            subprocess.run(['screencapture', '-x', path])
+            return 'Screenshot saved to Desktop as jarvis_screenshot.png'
+        except Exception as e:
+            return f'Screenshot error: {str(e)}'
 
-    # Notes
-    if 'note' in msg or 'remind me' in msg:
-        note_text = message.replace('note', '').replace('remind me', '').strip()
-        script = f'tell application "Notes" to make new note with properties {{body:"{note_text}"}}'
-        run_applescript(script)
-        return f'Note saved: {note_text}'
+    if 'create note' in msg or 'take note' in msg or 'remind me' in msg:
+        try:
+            note_text = msg
+            for k in ['create note', 'take note', 'remind me']:
+                note_text = note_text.replace(k, '').strip()
+            note_text = note_text.replace('"', '\\"')
+            script = f'tell application "Notes" to make new note with properties {{body:"{note_text}"}}'
+            run_applescript(script)
+            return f'Note saved: {note_text}'
+        except Exception as e:
+            return f'Notes error: {str(e)}'
 
-    # Open apps
-    if 'open' in msg:
-        app_name = message.lower().replace('open', '').strip().title()
-        return run_applescript(f'tell application "{app_name}" to activate')
+    if 'play' in msg and any(k in msg for k in ['music', 'spotify', 'song']):
+        return run_applescript('tell application "Spotify" to play')
+    if 'pause' in msg and any(k in msg for k in ['music', 'spotify']):
+        return run_applescript('tell application "Spotify" to pause')
+    if 'next' in msg and any(k in msg for k in ['song', 'track']):
+        return run_applescript('tell application "Spotify" to next track')
+
+    if 'open' in msg or 'launch' in msg:
+        app_name = msg.replace('open', '').replace('launch', '').strip().title()
+        if app_name:
+            return run_applescript(f'tell application "{app_name}" to activate')
 
     return None

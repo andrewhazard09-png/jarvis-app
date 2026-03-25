@@ -21,3 +21,4 @@ screen_capture.png
 app_pending.py
 app_temp.py
 *.tmp
+.aider*
