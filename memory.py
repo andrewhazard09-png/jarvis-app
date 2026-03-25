@@ -1,42 +1,27 @@
 import json
 import os
-from datetime import datetime
 
 MEMORY_FILE = os.path.expanduser('~/jarvis-app/memory.json')
 
 def load_memory():
-    if not os.path.exists(MEMORY_FILE):
-        return {"facts": [], "preferences": [], "patterns": [], "last_seen": None}
-    with open(MEMORY_FILE) as f:
-        return json.load(f)
+    try:
+        with open(MEMORY_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return {}
 
-def save_memory(memory):
+def save_memory(data):
     with open(MEMORY_FILE, 'w') as f:
-        json.dump(memory, f, indent=2)
+        json.dump(data, f, indent=2)
 
-def add_fact(fact):
+def remember(key, value):
     memory = load_memory()
-    memory['facts'].append({"fact": fact, "date": datetime.now().isoformat()})
-    memory['last_seen'] = datetime.now().isoformat()
-    save_memory(memory)
-
-def add_pattern(pattern):
-    memory = load_memory()
-    memory['patterns'].append({"pattern": pattern, "date": datetime.now().isoformat()})
+    memory[key] = value
     save_memory(memory)
 
 def get_context():
     memory = load_memory()
-    if not any([memory['facts'], memory['preferences'], memory['patterns']]):
+    if not memory:
         return ""
-    context = "\n\nWHAT YOU KNOW ABOUT THE USER:\n"
-    for f in memory['facts'][-10:]:
-        context += f"- {f['fact']}\n"
-    for p in memory['patterns'][-5:]:
-        context += f"- Pattern: {p['pattern']}\n"
-    if memory['last_seen']:
-        context += f"- Last session: {memory['last_seen']}\n"
-    return context
-
-if __name__ == '__main__':
-    print(json.dumps(load_memory(), indent=2))
+    lines = [f"- {k}: {v}" for k, v in memory.items()]
+    return "\nWhat you know about Drew:\n" + "\n".join(lines)

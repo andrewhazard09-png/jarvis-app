@@ -7,8 +7,10 @@ import time
 import os
 import subprocess
 import datetime
+import re
 
 from mac_bridge import handle_mac_command  # <-- All Mac commands handled here
+from memory import get_context, remember
 
 app = Flask(__name__)
 
@@ -156,6 +158,22 @@ def chat():
     print("\n--- REQUEST ---")
     print("USER:", message)
 
+    rem = re.match(r"^remember\s*(.*)$", message.strip(), re.IGNORECASE)
+    if rem:
+        rest = rem.group(1).strip()
+        if rest.lower().startswith("that "):
+            rest = rest[5:].strip()
+        key, val = None, None
+        if ":" in rest:
+            key, val = rest.split(":", 1)
+            key, val = key.strip(), val.strip()
+        else:
+            parts = rest.split(None, 1)
+            if len(parts) == 2:
+                key, val = parts[0].strip(), parts[1].strip()
+        if key and val:
+            remember(key, val)
+
     # WEATHER CHECK
     if "weather" in msg:
         result = get_weather("Nyack")
@@ -173,7 +191,7 @@ def chat():
             json={
                 "model": "llama-3.3-70b-versatile",
                 "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": SYSTEM_PROMPT + get_context()},
                     {"role": "user", "content": message}
                 ]
             }
